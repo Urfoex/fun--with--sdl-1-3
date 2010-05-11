@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   main.cpp
  * Author: Manuel Bellersen
  *
@@ -11,64 +11,31 @@
 #include <cassert>
 #include <string>
 #include "OpenGL.h"
+#include "Point.h"
 
 using namespace std;
 
 int main( int argc, char** argv ) {
 
-	OpenGL* ogl = OpenGL::getInstance();
-    assert( ogl != NULL);
+    OpenGL &ogl = OpenGL::getInstance();
+    assert( !ogl.gotQuit() );
 
-	SDL_WM_SetCaption( "Fraktale Gebirge", NULL);
-
-
-	    //Move to offset
-    glTranslatef( 0, 0, 0 );
-
-    //Start quad
-    glBegin( GL_QUADS );
-
-        //Set color to white
-        glColor4f( 1.0, 1.0, 1.0, 1.0 );
-
-        //Draw square
-	    glVertex3f( 0,            0,             0 );
-	    glVertex3f( 40, 0,             0 );
-	    glVertex3f( 40, 40, 0 );
-	    glVertex3f( 0,            40, 0 );
-
-    //End quad
-    glEnd();
-
-    //Reset
-    glLoadIdentity();
-
-	glMatrixMode( GL_MODELVIEW);
-	glLoadIdentity();
-
-	glTranslatef(100, 1.00, -1.0);
-
-	glColor4f( 1.0, 0.0, 1.0, 1.0);
-	glBegin( GL_POLYGON);
-		glVertex3f( 0.0, 0.0, -10);
-		glVertex3f( 0.0, 99.0, -10);
-		glVertex3f( 0.0, 99.0, 0);
-		glVertex3f( 0.0, 99.0, 10);
-		glVertex3f( 99.0, 99.0, 10);
-		glVertex3f( 99.0, 99.0, 0);
-		glVertex3f( 99.0, 0.0 , 0);
-		glVertex3f( 99.0, 0.0 , -10);
-	glEnd();
-
-	glLoadIdentity();
+    SDL_WM_SetCaption( "Fraktale Gebirge", NULL);
+	Point a(20,20,0);
+	ogl.addDrawable( &a);
+	Point b(20,20,0);
+	ogl.addDrawable( &b);
+	Point c(30,30,0);
+	ogl.addDrawable( &c);
+	Point d(10,20,0);
+	ogl.addDrawable( &d);
+	Point e(30,20,0);
+	ogl.addDrawable( &e);
 
 	do{
-		ogl->handleEvents();
-		glClearColor( 0, 0, 0, 0);
-		glClear( GL_COLOR_BUFFER_BIT);
-		SDL_GL_SwapBuffers();
-	}while( !ogl->gotQuit());
-
+		ogl.handleEvents();
+		ogl.drawScreen();
+	}while( !ogl.gotQuit());
 
     OpenGL::Quit();
 

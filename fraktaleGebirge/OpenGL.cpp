@@ -1,11 +1,13 @@
 #include "OpenGL.h"
 #include <iostream>
+#include <algorithm>
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include "Drawable.h"
 using namespace std;
 
 OpenGL* OpenGL::instance = NULL;
-bool OpenGL::quit = false;
+bool OpenGL::quit = true;
 SDL_Event OpenGL::event;
 unsigned short int OpenGL::windowX = 0;
 unsigned short int OpenGL::windowY = 0;
@@ -21,7 +23,7 @@ OpenGL::~OpenGL(){
 
 void OpenGL::Abort( AbortType error){
     switch( error){
-    case NO_ERROR:
+    case APPNO_ERROR:
         cerr << "Error unknown.\n";
         break;
 	case APP_REINITIALIZING:
@@ -66,7 +68,7 @@ string OpenGL::getGLError(GLenum error){
     return "UNDEFINED_ERROR";
 }
 
-OpenGL* OpenGL::getInstance(){
+OpenGL& OpenGL::getInstance(){
 	if( instance == NULL){
 		cerr << "Creating OpenGL instance\n";
 		if( windowX == 0 || windowY == 0 || windowDepth == 0){
@@ -80,10 +82,10 @@ OpenGL* OpenGL::getInstance(){
 		instance = new OpenGL();
         instance->init();
 	}
-	return instance;
+	return *instance;
 }
 
-OpenGL* OpenGL::getInstance( unsigned short int X, unsigned short int Y, unsigned short int Depth){
+OpenGL& OpenGL::getInstance( unsigned short int X, unsigned short int Y, unsigned short int Depth){
 	windowX = X;
 	windowY = Y;
 	windowDepth = Depth;
@@ -98,6 +100,7 @@ void OpenGL::init(){
 	initSDL();
     cerr << "Initializing OpenGL ...\n";
 	initGL();
+	quit = false;
     cerr << "... success.\n";
 }
 
@@ -154,6 +157,77 @@ void OpenGL::handleEvents(){
 	}
 }
 
+void OpenGL::drawScreen(){
+	glClearColor( 0, 0, 0, 0);
+	glClear( GL_COLOR_BUFFER_BIT);
+
+	glTranslatef( 0, 0, 0);
+	glColor3f( 1, 1, 1);
+	glPointSize( 1);
+	glBegin( GL_POINTS);
+		for_each( drawableList.begin(), drawableList.end(), Drawable::callDraw);
+	glEnd();
+	glEndList();
+	glBegin( GL_POLYGON);
+		glVertex3f( 1,1,0);
+		glVertex3f(10,1,0);
+		glVertex3f(10,10,0);
+		glVertex3f(1,10,0);
+	glEnd();
+
+
+//	    //Move to offset
+//    glTranslatef( 0, 0, 0 );
+//
+//    //Start quad
+//    glBegin( GL_QUADS );
+//
+//        //Set color to white
+//        glColor4f( 1.0, 1.0, 1.0, 1.0 );
+//
+//        //Draw square
+//	    glVertex3f( 0,            0,             0 );
+//	    glVertex3f( 40, 0,             0 );
+//	    glVertex3f( 40, 40, 0 );
+//	    glVertex3f( 0,            40, 0 );
+//
+//    //End quad
+//    glEnd();
+//
+//    //Reset
+//    glLoadIdentity();
+//
+//	glMatrixMode( GL_MODELVIEW);
+//	glLoadIdentity();
+//
+//	glTranslatef(100, 1.00, -1.0);
+//
+//	glColor4f( 1.0, 0.0, 1.0, 1.0);
+//	glBegin( GL_POLYGON);
+//		glVertex3f( 0.0, 0.0, -10);
+//		glVertex3f( 0.0, 99.0, -10);
+//		glVertex3f( 0.0, 99.0, 0);
+//		glVertex3f( 0.0, 99.0, 10);
+//		glVertex3f( 99.0, 99.0, 10);
+//		glVertex3f( 99.0, 99.0, 0);
+//		glVertex3f( 99.0, 0.0 , 0);
+//		glVertex3f( 99.0, 0.0 , -10);
+//	glEnd();
+
+	glLoadIdentity();
+
+
+	SDL_GL_SwapBuffers();
+}
+
 bool OpenGL::gotQuit(){
 	return quit;
+}
+
+void OpenGL::addDrawable(Drawable* thing){
+	drawableList.push_back( thing);
+}
+
+void OpenGL::removeDrawable( Drawable* thing){
+	drawableList.remove( thing);
 }

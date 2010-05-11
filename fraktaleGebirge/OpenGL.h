@@ -10,15 +10,21 @@
 
 #include <string>
 #include <queue>
+#include <list>
 #include <SDL.h>
 #include <SDL_opengl.h>
 
+#include "Drawable.h"
+
 class OpenGL{
 public:
-	static OpenGL* getInstance();
-	static OpenGL* getInstance( unsigned short int X, unsigned short int Y, unsigned short int Depth);
-    static void Quit();
+	static OpenGL& getInstance();
+	static OpenGL& getInstance( unsigned short int X, unsigned short int Y, unsigned short int Depth);
+	static void Quit();
 	void handleEvents();
+	void drawScreen();
+	void addDrawable( Drawable* thing);
+	void removeDrawable( Drawable* thing);
 	bool gotQuit();
 private:
 	static OpenGL* instance;
@@ -28,19 +34,20 @@ private:
 	std::queue<SDL_MouseMotionEvent> eventQMouseMovement;
 	std::queue<SDL_MouseButtonEvent> eventQMouseDown;
 	std::queue<SDL_MouseButtonEvent> eventQMouseUp;
+	std::list<Drawable*> drawableList;
 	static bool quit;
-    static unsigned short int windowX;
-    static unsigned short int windowY;
-    static unsigned short int windowDepth;
-    enum AbortType{ NO_ERROR = 0, APP_REINITIALIZING, SDL_ERROR, OPENGL_ERROR};
+	static unsigned short int windowX;
+	static unsigned short int windowY;
+	static unsigned short int windowDepth;
+	enum AbortType{ APPNO_ERROR = 0, APP_REINITIALIZING, SDL_ERROR, OPENGL_ERROR};
 
 	OpenGL();
 	~OpenGL();
 	void init();
 	void initGL();
 	void initSDL();
-    static void Abort( AbortType error);
-    static std::string getGLError( GLenum error);
+	static void Abort( AbortType error);
+	static std::string getGLError( GLenum error);
 	void handleMouseMovement();
 	void handleMouseDown();
 	void handleMouseUp();
