@@ -13,11 +13,11 @@
 
 class Drawable{
 public:
-	Drawable(){ id = ++endID;};
-	virtual ~Drawable(){ --endID;};
-	virtual void draw(){ std::cerr << "virtual\n";};
-	bool operator==( Drawable const& a){ return this->id == a.id;};
-    static void callDraw( Drawable* a){ a->draw();};
+	Drawable();
+	virtual ~Drawable();
+	virtual void draw();
+	virtual bool operator==( Drawable const& a);
+    static void callDraw( Drawable* a);
 private:
 	unsigned long int id;
 	static unsigned long int endID;

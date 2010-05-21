@@ -15,6 +15,10 @@ class Point : public Drawable{
 public:
 	Point( GLdouble X, GLdouble Y, GLdouble Z);
 	Point( GLdouble XYZ[3]);
+	GLdouble getX();
+	GLdouble getY();
+	GLdouble getZ();
+	void alterZ( int high);
 	~Point();
 	void draw();
 private:

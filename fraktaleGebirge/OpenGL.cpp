@@ -4,6 +4,9 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 #include "Drawable.h"
+#include "Point.h"
+#include "Fractal.h"
+
 using namespace std;
 
 OpenGL* OpenGL::instance = NULL;
@@ -14,6 +17,10 @@ unsigned short int OpenGL::windowY = 0;
 unsigned short int OpenGL::windowDepth = 0;
 
 OpenGL::OpenGL(){
+	rotationDegree = 0;
+	rotationX = 0;
+	rotationY = 0;
+	rotationZ = 0;
 }
 
 OpenGL::~OpenGL(){
@@ -138,6 +145,7 @@ void OpenGL::handleEvents(){
 			break;
 		case SDL_KEYUP:
 			eventQKeyUp.push( event.key);
+			handleKeyDown();
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 			eventQMouseDown.push( event.button);
@@ -147,6 +155,7 @@ void OpenGL::handleEvents(){
 			break;
 		case SDL_MOUSEMOTION:
 			eventQMouseMovement.push( event.motion);
+			handleMouseMovement();
 			break;
 		case SDL_QUIT:
 			quit = true;
@@ -162,18 +171,11 @@ void OpenGL::drawScreen(){
 	glClear( GL_COLOR_BUFFER_BIT);
 
 	glTranslatef( 0, 0, 0);
+	glRotatef( rotationDegree, rotationX, rotationY, rotationZ);
 	glColor3f( 1, 1, 1);
 	glPointSize( 1);
-	glBegin( GL_POINTS);
-		for_each( drawableList.begin(), drawableList.end(), Drawable::callDraw);
-	glEnd();
-	glEndList();
-	glBegin( GL_POLYGON);
-		glVertex3f( 1,1,0);
-		glVertex3f(10,1,0);
-		glVertex3f(10,10,0);
-		glVertex3f(1,10,0);
-	glEnd();
+	for_each( drawableList.begin(), drawableList.end(), Drawable::callDraw);
+
 
 
 //	    //Move to offset
@@ -220,6 +222,13 @@ void OpenGL::drawScreen(){
 	SDL_GL_SwapBuffers();
 }
 
+void OpenGL::rotateView(GLfloat d, GLfloat x, GLfloat y, GLfloat z){
+	rotationDegree = d;
+	rotationX = x;
+	rotationY = y;
+	rotationZ = z;
+}
+
 bool OpenGL::gotQuit(){
 	return quit;
 }
@@ -230,4 +239,27 @@ void OpenGL::addDrawable(Drawable* thing){
 
 void OpenGL::removeDrawable( Drawable* thing){
 	drawableList.remove( thing);
+}
+
+void OpenGL::handleMouseMovement(){
+//	while( !eventQMouseMovement.empty()){
+//		SDL_MouseMotionEvent mme = eventQMouseMovement.front();
+//		eventQMouseMovement.pop();
+//		rotateView( mme.x/100, 1.0, 0.0, 0);
+//		rotateView( mme.y/100, 0.0, 1.0, 0);
+//	}
+}
+
+void OpenGL::handleKeyDown(){
+	while(!eventQKeyDown.empty()){
+		SDL_KeyboardEvent ke = eventQKeyDown.front();
+		eventQKeyDown.pop();
+		switch( ke.keysym.sym){
+			case SDLK_ESCAPE:
+				quit = true;
+				break;
+			default:
+				break;
+		}
+	}
 }

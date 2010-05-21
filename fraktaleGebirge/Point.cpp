@@ -14,9 +14,26 @@ Point::Point( GLdouble XYZ[3]){
 };
 
 Point::~Point(){
-	std::cerr << "endPoint\n";
+	std::cerr << "endPoint: " << xyz[0] << " " <<
+		xyz[1] << " " << xyz[2] << "\n";
 }
 
 void Point::draw(){
 	glVertex3dv( xyz);
+}
+
+GLdouble Point::getX(){
+	return xyz[0];
+}
+
+GLdouble Point::getY(){
+	return xyz[1];
+}
+
+GLdouble Point::getZ(){
+	return xyz[2];
+}
+
+void Point::alterZ(int high){
+	xyz[2] += 0 +  high;
 }

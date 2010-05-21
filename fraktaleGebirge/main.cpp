@@ -11,7 +11,7 @@
 #include <cassert>
 #include <string>
 #include "OpenGL.h"
-#include "Point.h"
+#include "Fractal.h"
 
 using namespace std;
 
@@ -21,16 +21,10 @@ int main( int argc, char** argv ) {
     assert( !ogl.gotQuit() );
 
     SDL_WM_SetCaption( "Fraktale Gebirge", NULL);
-	Point a(20,20,0);
-	ogl.addDrawable( &a);
-	Point b(20,20,0);
-	ogl.addDrawable( &b);
-	Point c(30,30,0);
-	ogl.addDrawable( &c);
-	Point d(10,20,0);
-	ogl.addDrawable( &d);
-	Point e(30,20,0);
-	ogl.addDrawable( &e);
+
+	Fractal f;
+	f.generateFractal( 1);
+	ogl.addDrawable( &f);
 
 	do{
 		ogl.handleEvents();

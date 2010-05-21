@@ -15,6 +15,8 @@
 #include <SDL_opengl.h>
 
 #include "Drawable.h"
+//#include "Point.h"
+//#include "Triangle.h"
 
 class OpenGL{
 public:
@@ -23,6 +25,7 @@ public:
 	static void Quit();
 	void handleEvents();
 	void drawScreen();
+    void rotateView( GLfloat d, GLfloat x, GLfloat y, GLfloat z);
 	void addDrawable( Drawable* thing);
 	void removeDrawable( Drawable* thing);
 	bool gotQuit();
@@ -39,6 +42,10 @@ private:
 	static unsigned short int windowX;
 	static unsigned short int windowY;
 	static unsigned short int windowDepth;
+	GLfloat rotationDegree;
+	GLfloat rotationX;
+	GLfloat rotationY;
+	GLfloat rotationZ;
 	enum AbortType{ APPNO_ERROR = 0, APP_REINITIALIZING, SDL_ERROR, OPENGL_ERROR};
 
 	OpenGL();
