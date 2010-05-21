@@ -10,6 +10,12 @@ Point::~Point(){
 		y << " " << z << "\n";
 }
 
+void Point::removePoint(Point* p){
+	std::cerr << "endPoint: " << p->getID() << "/"
+		<< Drawable::getEndID() <<" \n";
+	delete p;
+}
+
 void Point::draw(){
 	glVertex3d( x, y, z);
 }
@@ -33,5 +39,5 @@ GLdouble Point::getZ(){
 }
 
 void Point::alterZ(int high){
-	z += 0 +  high;
+	y += 0 -  4*high;
 }

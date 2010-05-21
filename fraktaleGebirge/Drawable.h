@@ -18,6 +18,10 @@ public:
 	virtual void draw();
 	virtual bool operator==( Drawable const& a);
     static void callDraw( Drawable* a);
+
+protected:
+	unsigned long int getID();
+	static unsigned long int getEndID();
 private:
 	unsigned long int id;
 	static unsigned long int endID;

@@ -14,6 +14,7 @@
 class Point : public Drawable{
 public:
 	Point( GLdouble X, GLdouble Y, GLdouble Z);
+	static void removePoint( Point* p);
 	GLdouble getX();
 	GLdouble getY();
 	GLdouble getZ();

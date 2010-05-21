@@ -21,9 +21,9 @@ public:
 
 private:
 	static void drawTriangle( Triangle* t);
-	static void removeTriangle( Triangle* t);
 	void computeFractal( Triangle* t, int depth );
 	std::list<Triangle*> triangleList;
+	std::list<Point*> pointList;
 };
 
 

@@ -13,12 +13,13 @@
 
 class Triangle : public Drawable {
 public:
-	Triangle( Point a, Point b, Point c);
+	Triangle( Point* a, Point* b, Point* c);
 	~Triangle();
+	static void removeTriangle( Triangle* t);
 	void draw();
-	Point A;
-	Point B;
-	Point C;
+	Point* A;
+	Point* B;
+	Point* C;
 private:
 
 };

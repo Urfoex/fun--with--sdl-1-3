@@ -21,3 +21,11 @@ bool Drawable::operator==( Drawable const& a){
 void Drawable::callDraw( Drawable* a){
 	a->draw();
 };
+
+unsigned long int Drawable::getID(){
+	return id;
+}
+
+unsigned long int Drawable::getEndID(){
+	return endID;
+}
