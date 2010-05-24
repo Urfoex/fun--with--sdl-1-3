@@ -10,6 +10,7 @@
 
 #include "Drawable.h"
 #include "Triangle.h"
+#include "RotTrans.h"
 #include <list>
 
 class Fractal : public Drawable {
@@ -18,12 +19,23 @@ public:
 	~Fractal();
 	void generateFractal( int depth);
 	void draw();
-
+	RotTrans rotationTranslation;
 private:
 	static void drawTriangle( Triangle* t);
 	void computeFractal( Triangle* t, int depth );
+	double computePerturbation( double length);
+	double computeLength( Point* a, Point*b);
 	std::list<Triangle*> triangleList;
 	std::list<Point*> pointList;
+	double highMax;
+};
+
+struct tridepth{
+	tridepth( Triangle* T, int D){
+		triangle = T; depth = D;
+	};
+	Triangle* triangle;
+	int depth;
 };
 
 

@@ -9,7 +9,7 @@
 #define	_POINT_H
 
 #include "Drawable.h"
-#include "OpenGL.h"
+#include "SDL_opengl.h"
 
 class Point : public Drawable{
 public:
@@ -18,7 +18,7 @@ public:
 	GLdouble getX();
 	GLdouble getY();
 	GLdouble getZ();
-	void alterZ( int high);
+	void alterY( double high);
 	~Point();
 	void draw();
 	void printPoints();

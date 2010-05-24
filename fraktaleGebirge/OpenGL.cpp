@@ -17,10 +17,7 @@ unsigned short int OpenGL::windowY = 0;
 unsigned short int OpenGL::windowDepth = 0;
 
 OpenGL::OpenGL(){
-	rotationDegree = 0;
-	rotationX = 0;
-	rotationY = 0;
-	rotationZ = 0;
+	mouseActivity = NOTHING;
 }
 
 OpenGL::~OpenGL(){
@@ -107,34 +104,52 @@ void OpenGL::init(){
 	initSDL();
     cerr << "Initializing OpenGL ...\n";
 	initGL();
+	cerr << "Setting up View ...\n";
+	setupView();
 	quit = false;
     cerr << "... success.\n";
 }
 
 void OpenGL::initSDL(){
+
 	if( SDL_Init( SDL_INIT_VIDEO) == -1){
 		OpenGL::Abort( SDL_ERROR);
 	}
 
-	SDL_Surface* mainSurface = SDL_SetVideoMode( windowX, windowY, windowDepth, SDL_OPENGL | SDL_DOUBLEBUF);
+    SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1);
+
+	SDL_Surface* mainSurface = SDL_SetVideoMode( windowX, windowY, windowDepth,
+        SDL_OPENGL | SDL_DOUBLEBUF | SDL_GL_DOUBLEBUFFER | SDL_HWACCEL | SDL_HWSURFACE | SDL_HWPALETTE);
 	if( mainSurface == NULL){
 		OpenGL::Abort( SDL_ERROR);
 	}
 }
 
 void OpenGL::initGL(){
+    glShadeModel( GL_SMOOTH);			// smooth shading on
 	glClearColor( 0, 0, 0, 0);			// Hintergrundfarbe: schwarz
-	glMatrixMode( GL_PROJECTION);		// Projektion setzten
-	glOrtho( 0, windowX, windowY, 0, -1, 1);	// Setzten des Sichtvolumens
 
-	glMatrixMode( GL_MODELVIEW);		// MatrixMode auf ModelView setzten
-	glLoadIdentity();					// auf Einheitsmatrix zurücksetzten
+    glClearDepth( 1.0);					// depth-Buffer
+    glEnable( GL_DEPTH_TEST);			// depth-Test on
+    glDepthFunc( GL_LEQUAL);			// Test-Typ
+    glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Auto-Korrektur der Perspektive
 
 	if( glGetError() != GL_NO_ERROR){
         OpenGL::Abort( OPENGL_ERROR);			// bei Fehlern abbrechen
     }
-	glViewport( 0, 0, windowX, windowY);
-    glClear( GL_COLOR_BUFFER_BIT);		// Bildschirm löschen
+
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		// Bildschirm löschen
+}
+
+void OpenGL::setupView(){
+	glViewport( 0, 0, windowX, windowY);	// Viewport setzten
+
+	setView();
+
+	if( glGetError() != GL_NO_ERROR){
+        OpenGL::Abort( OPENGL_ERROR);			// bei Fehlern abbrechen
+    }
+
 }
 
 void OpenGL::handleEvents(){
@@ -142,16 +157,19 @@ void OpenGL::handleEvents(){
 		switch( event.type){
 		case SDL_KEYDOWN:
 			eventQKeyDown.push( event.key);
+			handleKeyDown();
 			break;
 		case SDL_KEYUP:
 			eventQKeyUp.push( event.key);
-			handleKeyDown();
+			handleKeyUp();
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 			eventQMouseDown.push( event.button);
+			handleMouseDown();
 			break;
 		case SDL_MOUSEBUTTONUP:
 			eventQMouseUp.push( event.button);
+			handleMouseUp();
 			break;
 		case SDL_MOUSEMOTION:
 			eventQMouseMovement.push( event.motion);
@@ -168,65 +186,18 @@ void OpenGL::handleEvents(){
 
 void OpenGL::drawScreen(){
 	glClearColor( 0, 0, 0, 0);
-	glClear( GL_COLOR_BUFFER_BIT);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
 
-	glTranslatef( 0, 0, 0);
-	glRotatef( rotationDegree, rotationX, rotationY, rotationZ);
+	updateView();
+
 	glColor3f( 1, 1, 1);
 	glPointSize( 1);
 	for_each( drawableList.begin(), drawableList.end(), Drawable::callDraw);
 
-
-
-//	    //Move to offset
-//    glTranslatef( 0, 0, 0 );
-//
-//    //Start quad
-//    glBegin( GL_QUADS );
-//
-//        //Set color to white
-//        glColor4f( 1.0, 1.0, 1.0, 1.0 );
-//
-//        //Draw square
-//	    glVertex3f( 0,            0,             0 );
-//	    glVertex3f( 40, 0,             0 );
-//	    glVertex3f( 40, 40, 0 );
-//	    glVertex3f( 0,            40, 0 );
-//
-//    //End quad
-//    glEnd();
-//
-//    //Reset
-//    glLoadIdentity();
-//
-//	glMatrixMode( GL_MODELVIEW);
-//	glLoadIdentity();
-//
-//	glTranslatef(100, 1.00, -1.0);
-//
-//	glColor4f( 1.0, 0.0, 1.0, 1.0);
-//	glBegin( GL_POLYGON);
-//		glVertex3f( 0.0, 0.0, -10);
-//		glVertex3f( 0.0, 99.0, -10);
-//		glVertex3f( 0.0, 99.0, 0);
-//		glVertex3f( 0.0, 99.0, 10);
-//		glVertex3f( 99.0, 99.0, 10);
-//		glVertex3f( 99.0, 99.0, 0);
-//		glVertex3f( 99.0, 0.0 , 0);
-//		glVertex3f( 99.0, 0.0 , -10);
-//	glEnd();
-
 	glLoadIdentity();
 
-
 	SDL_GL_SwapBuffers();
-}
-
-void OpenGL::rotateView(GLfloat d, GLfloat x, GLfloat y, GLfloat z){
-	rotationDegree = d;
-	rotationX = x;
-	rotationY = y;
-	rotationZ = z;
 }
 
 bool OpenGL::gotQuit(){
@@ -242,12 +213,44 @@ void OpenGL::removeDrawable( Drawable* thing){
 }
 
 void OpenGL::handleMouseMovement(){
-//	while( !eventQMouseMovement.empty()){
-//		SDL_MouseMotionEvent mme = eventQMouseMovement.front();
-//		eventQMouseMovement.pop();
-//		rotateView( mme.x/100, 1.0, 0.0, 0);
-//		rotateView( mme.y/100, 0.0, 1.0, 0);
-//	}
+	while( !eventQMouseMovement.empty()){
+		SDL_MouseMotionEvent mme = eventQMouseMovement.front();
+		eventQMouseMovement.pop();
+		mouseCoordinates.x += mme.xrel;
+		mouseCoordinates.y += mme.yrel;
+	}
+}
+
+void OpenGL::handleMouseDown(){
+	while( !eventQMouseDown.empty()){
+		SDL_MouseButtonEvent mbe = eventQMouseDown.front();
+		eventQMouseDown.pop();
+		switch( mbe.button){
+			case 4:
+				++windowX;
+				++windowY;
+				setView();
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+void OpenGL::handleMouseUp(){
+	while( !eventQMouseUp.empty()){
+		SDL_MouseButtonEvent mbe = eventQMouseUp.front();
+		eventQMouseUp.pop();
+		switch( mbe.button){
+			case 5:
+				--windowX;
+				--windowY;
+				setView();
+				break;
+			default:
+				break;
+		}
+	}
 }
 
 void OpenGL::handleKeyDown(){
@@ -258,8 +261,98 @@ void OpenGL::handleKeyDown(){
 			case SDLK_ESCAPE:
 				quit = true;
 				break;
+			case SDLK_t:
+				setMouseActivity( TRANSLATION);
+				break;
+			case SDLK_r:
+				setMouseActivity( ROTATION);
+				break;
+			case SDLK_z:
+				setMouseActivity( NOTHING);
+				break;
+			case SDLK_UP:
+				zoomFactor += 1;
+				break;
+			case SDLK_DOWN:
+				zoomFactor -= 1;
+				break;
 			default:
 				break;
 		}
 	}
+}
+
+void OpenGL::handleKeyUp(){
+	while(!eventQKeyUp.empty()){
+		SDL_KeyboardEvent ke = eventQKeyUp.front();
+		eventQKeyUp.pop();
+		switch( ke.keysym.sym){
+			case SDLK_ESCAPE:
+				quit = true;
+				break;
+			case SDLK_t:
+				break;
+			case SDLK_r:
+				break;
+			case SDLK_z:
+				break;
+			case SDLK_UP:
+				zoomFactor -= 1;
+				break;
+			case SDLK_DOWN:
+				zoomFactor += 1;
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+void OpenGL::setMouseActivity(MouseActivity mouseactivity){
+	mouseActivity = mouseactivity;
+}
+
+void OpenGL::updateMouse(){
+	switch( mouseActivity){
+	case NOTHING:
+		break;
+	case TRANSLATION:
+		fractal->rotationTranslation.translate( mouseCoordinates.x, mouseCoordinates.y, 0);
+		break;
+	case ROTATION:
+		fractal->rotationTranslation.rotate( mouseCoordinates.y, 0, 0);
+		break;
+	default:
+		break;
+	}
+	mouseCoordinates.x = 0;
+	mouseCoordinates.y = 0;
+}
+
+void OpenGL::updateView(){
+	updateMouse();
+	zoomView();
+}
+
+void OpenGL::zoomView(){
+	if( zoomFactor){
+		windowX += zoomFactor;
+		windowY += zoomFactor;
+		setView();
+	}
+}
+
+void OpenGL::setFractal(Fractal* f){
+	fractal = f;
+	addDrawable( fractal);
+	fractal->rotationTranslation.translate( -300.0, -50.0, 0.0);
+	fractal->rotationTranslation.rotate( 0.0, 0.0, 0.0);
+}
+
+void OpenGL::setView(){
+	glMatrixMode( GL_PROJECTION);		// Projektion setzten
+	glLoadIdentity();					// auf Einheitsmatrix zurücksetzten
+	glOrtho( -(double)windowX/2.0, (double)windowX/2.0, (double)windowY/2.0, -( double )windowY/2.0, -100.0, 100.0);	// Setzten des Sichtvolumens
+	glMatrixMode( GL_MODELVIEW);		// MatrixMode auf ModelView setzten
+	glLoadIdentity();					// auf Einheitsmatrix zurücksetzten
 }

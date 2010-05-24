@@ -1,4 +1,7 @@
 #include <iostream>
+#include <cstdlib>
+#include <stdlib.h>
+#include <cmath>
 #include "Point.h"
 
 Point::Point( GLdouble X, GLdouble Y, GLdouble Z):
@@ -6,13 +9,13 @@ x(X), y(Y), z(Z){
 };
 
 Point::~Point(){
-	std::cerr << "endPoint: " << x << " " <<
-		y << " " << z << "\n";
+//	std::cerr << "endPoint: " << x << " " <<
+//		y << " " << z << "\n";
 }
 
 void Point::removePoint(Point* p){
-	std::cerr << "endPoint: " << p->getID() << "/"
-		<< Drawable::getEndID() <<" \n";
+//	std::cerr << "endPoint: " << p->getID() << "/"
+//		<< Drawable::getEndID() <<" \n";
 	delete p;
 }
 
@@ -38,6 +41,6 @@ GLdouble Point::getZ(){
 	return z;
 }
 
-void Point::alterZ(int high){
-	y += 0 -  4*high;
+void Point::alterY(double high){
+	y += high;
 }

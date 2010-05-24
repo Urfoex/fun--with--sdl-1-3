@@ -24,7 +24,7 @@ int main( int argc, char** argv ) {
 
 	Fractal f;
 	f.generateFractal( 7);
-	ogl.addDrawable( &f);
+	ogl.setFractal( &f);
 
 	do{
 		ogl.handleEvents();

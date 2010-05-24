@@ -15,8 +15,8 @@
 #include <SDL_opengl.h>
 
 #include "Drawable.h"
-//#include "Point.h"
-//#include "Triangle.h"
+#include "RotTrans.h"
+#include "Fractal.h"
 
 class OpenGL{
 public:
@@ -25,10 +25,10 @@ public:
 	static void Quit();
 	void handleEvents();
 	void drawScreen();
-    void rotateView( GLfloat d, GLfloat x, GLfloat y, GLfloat z);
 	void addDrawable( Drawable* thing);
 	void removeDrawable( Drawable* thing);
 	bool gotQuit();
+	void setFractal( Fractal* f);
 private:
 	static OpenGL* instance;
 	static SDL_Event event;
@@ -42,17 +42,22 @@ private:
 	static unsigned short int windowX;
 	static unsigned short int windowY;
 	static unsigned short int windowDepth;
-	GLfloat rotationDegree;
-	GLfloat rotationX;
-	GLfloat rotationY;
-	GLfloat rotationZ;
+	int zoomFactor;
 	enum AbortType{ APPNO_ERROR = 0, APP_REINITIALIZING, SDL_ERROR, OPENGL_ERROR};
+	enum MouseActivity{ NOTHING = 0, TRANSLATION , ROTATION} mouseActivity;
+    struct coordinates{
+        int x;
+        int y;
+    } mouseCoordinates;
+	Fractal* fractal;
 
 	OpenGL();
 	~OpenGL();
 	void init();
 	void initGL();
 	void initSDL();
+	void setupView();
+	void zoomView( );
 	static void Abort( AbortType error);
 	static std::string getGLError( GLenum error);
 	void handleMouseMovement();
@@ -60,6 +65,10 @@ private:
 	void handleMouseUp();
 	void handleKeyDown();
 	void handleKeyUp();
+	void setMouseActivity( enum MouseActivity mouseactivity);
+	void updateMouse();
+	void updateView();
+	void setView();
 
 };
 
