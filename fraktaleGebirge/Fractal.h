@@ -22,9 +22,11 @@ public:
 	RotTrans rotationTranslation;
 private:
 	static void drawTriangle( Triangle* t);
-	void computeFractal( Triangle* t, int depth );
+	void computeFractalRecursive( Triangle* t, int depth );
+	void computeFractalIterative( Triangle* t, int depth );
 	double computePerturbation( double length);
 	double computeLength( Point* a, Point*b);
+    Point* insertPoint( Point* p);
 	std::list<Triangle*> triangleList;
 	std::list<Point*> pointList;
 	double highMax;

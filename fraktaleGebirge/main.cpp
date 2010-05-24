@@ -23,7 +23,7 @@ int main( int argc, char** argv ) {
     SDL_WM_SetCaption( "Fraktale Gebirge", NULL);
 
 	Fractal f;
-	f.generateFractal( 7);
+	f.generateFractal( 07);
 	ogl.setFractal( &f);
 
 	do{

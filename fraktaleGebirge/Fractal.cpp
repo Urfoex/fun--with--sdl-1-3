@@ -15,7 +15,7 @@ using namespace std;
 Fractal::Fractal(){
 	triangleList.clear();
     pointList.clear();
-	std::srand( std::time(0));
+	srand( time(0));
 }
 
 Fractal::~Fractal(){
@@ -31,17 +31,21 @@ void Fractal::generateFractal( int depth){
 	Point* c = new Point( 600.0, 50.0, 0.2);
 	pointList.push_back(c);
 	Triangle* t = new Triangle( a, b, c);
-	computeFractal( t, depth);
+
+	highMax = depth;
+
+//	computeFractalIterative( t, depth);
+	computeFractalRecursive( t, depth);
+	triangleList.sort();
 	std::cerr << "triangles: " << triangleList.size() << std::endl;
 	std::cerr << "points: " << pointList.size() << std::endl;
 }
 
-void Fractal::computeFractal(Triangle* t, int depth){
+void Fractal::computeFractalIterative(Triangle* t, int depth){
     std::list<tridepth*> l;
     l.clear();
     l.push_back( new tridepth( t, depth));
 	tridepth* td;
-	highMax = depth;
     while( !l.empty()){
 		td = l.front();
 		l.pop_front();
@@ -65,19 +69,21 @@ void Fractal::computeFractal(Triangle* t, int depth){
 			t->A->getY() + (t->B->getY() - t->A->getY())/2.0,
 			t->A->getZ() + (t->B->getZ() - t->A->getZ())/2.0
 		);
-		pointList.push_back(ab);
+		ab = insertPoint( ab);
+
 		Point* ac = new Point(
 			t->A->getX() + (t->C->getX() - t->A->getX())/2.0,
 			t->A->getY() + (t->C->getY() - t->A->getY())/2.0,
 			t->A->getZ() + (t->C->getZ() - t->A->getZ())/2.0
 		);
-		pointList.push_back(ac);
+		ac = insertPoint( ac);
+
 		Point* bc = new Point(
 			t->B->getX() + (t->C->getX() - t->B->getX())/2.0,
 			t->B->getY() + (t->C->getY() - t->B->getY())/2.0,
 			t->B->getZ() + (t->C->getZ() - t->B->getZ())/2.0
 		);
-		pointList.push_back(bc);
+		bc = insertPoint(bc);
 
 		ab->alterY( computePerturbation( computeLength( t->A, t->B)));
 		ac->alterY( computePerturbation( computeLength( t->A, t->C)));
@@ -97,6 +103,69 @@ void Fractal::computeFractal(Triangle* t, int depth){
 
 		delete t;
     }
+}
+
+void Fractal::computeFractalRecursive( Triangle* t, int depth ){
+	if( depth == 0){
+//		std::cerr << "Pushing triangle\n";
+//		t->A->printPoints();
+//		t->B->printPoints();
+//		t->C->printPoints();
+		triangleList.push_back( t);
+		return;
+	}
+
+	Point* ab = new Point(
+		t->A->getX() + (t->B->getX() - t->A->getX())/2.0,
+		t->A->getY() + (t->B->getY() - t->A->getY())/2.0,
+		t->A->getZ() + (t->B->getZ() - t->A->getZ())/2.0
+	);
+	ab = insertPoint( ab);
+
+	Point* ac = new Point(
+		t->A->getX() + (t->C->getX() - t->A->getX())/2.0,
+		t->A->getY() + (t->C->getY() - t->A->getY())/2.0,
+		t->A->getZ() + (t->C->getZ() - t->A->getZ())/2.0
+	);
+	ac = insertPoint( ac);
+
+	Point* bc = new Point(
+		t->B->getX() + (t->C->getX() - t->B->getX())/2.0,
+		t->B->getY() + (t->C->getY() - t->B->getY())/2.0,
+		t->B->getZ() + (t->C->getZ() - t->B->getZ())/2.0
+	);
+	bc = insertPoint(bc);
+
+	ab->alterY( computePerturbation( computeLength( t->A, t->B)));
+	ac->alterY( computePerturbation( computeLength( t->A, t->C)));
+	bc->alterY( computePerturbation( computeLength( t->B, t->C)));
+
+	Triangle* a_ab_ac = new Triangle( (t->A), ab, ac);
+	Triangle* ab_b_bc = new Triangle( ab, (t->B), bc);
+	Triangle* ac_bc_c = new Triangle( ac, bc, (t->C));
+	Triangle* ab_bc_ac = new Triangle( ab, bc, ac);
+
+	computeFractalRecursive( a_ab_ac, depth - 1);
+	computeFractalRecursive( ab_b_bc, depth - 1);
+	computeFractalRecursive( ac_bc_c, depth - 1);
+	computeFractalRecursive( ab_bc_ac, depth - 1);
+
+	delete t;
+
+}
+
+Point* Fractal::insertPoint(Point* p){
+	std::list<Point*>::iterator it = pointList.begin();
+	while( it != pointList.end()){
+		if( p->hasEqualPlaceAs( *it)){
+			delete p;
+			return *it;
+		}
+		++it;
+	}
+
+	pointList.push_back(p);
+	return p;
 }
 
 double Fractal::computeLength(Point* a, Point* b){

@@ -19,6 +19,16 @@ void Point::removePoint(Point* p){
 	delete p;
 }
 
+bool Point::hasEqualPlaceAs(Point* p){
+	if( std::abs( std::abs(x) - std::abs( p->x)) < 0.000001
+		&& std::abs( std::abs(z) - std::abs( p->z)) < 0.000001){
+//		std::cerr << "x: " << x << " px: " << p->x;
+//		std::cerr << "z: " << z << " pz: " << p->z << "\n";
+		return true;
+	}
+	return false;
+}
+
 void Point::draw(){
 	glVertex3d( x, y, z);
 }
