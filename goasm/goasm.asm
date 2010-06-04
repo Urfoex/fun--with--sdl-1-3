@@ -28,6 +28,10 @@
     YPLUS   = 19
     XPLUS   = 1
     XYMAX   = 360               ; 0 - 360 = 361
+    XMIN    = 0
+    XMAX    = 456
+    YMIN    = 24
+    YMAX    = 479
 
 ;-----------------------------------------------------------------------------
 ; Der Stack ist im Normalfall 1024 Bytes gross. Das sollte hier auch reichen.
@@ -645,12 +649,104 @@ SETZTE_STEIN proc far
 SETZTE_STEIN endp
 
 ;-----------------------------------------------------------------------------
+; grafisches Setzten
+;-----------------------------------------------------------------------------
+; Parameter:
+;   ax: Farbe
+;   ax: (X,Y)
+;-----------------------------------------------------------------------------
+GRAFISCH_SETZTEN proc far
+        pusha
+        push es
+
+        push ds
+        pop ds
+
+        call SETZTE_STEIN
+
+        cmp RUECKGABE, TRUE         ; Konnte Stein gesetzt werden?
+        jne GRAFISCH_ENDE           ; nein -> Ende
+
+        push VGA_SEGMENT
+        pop es
+
+        call FARBEBENEN_FREIGEBEN
+        call FARBEBENEN_MODUS2
+
+    GRAFISCH_ENDE:
+
+        pop es
+        popa
+        ret
+GRAFISCH_SETZTEN endp
+
+
+;-----------------------------------------------------------------------------
+; Berechnung der Position aus den Mauskoordinaten
+;-----------------------------------------------------------------------------
+; Parameter:
+;   ax: 0
+;   cx: X
+;   dx: Y
+;-----------------------------------------------------------------------------
+; Rueckgabe:
+;   ax: Position
+;-----------------------------------------------------------------------------
+BERECHNE_POSITION proc far
+        push cx
+        push dx
+        push ds
+
+        push @DATA
+        pop ds
+
+        cmp dx, YMAX        ; dx:Y groesser als YMAX ?
+        jg BERECHNEPOS_ENDE       
+        cmp dx, YMIN        ; dx:Y kleiner als YMIN ?
+        jl BERECHNEPOS_ENDE
+
+        cmp cx, XMAX        ; cx:X groesser als XMAX ?
+        jg BERECHNEPOS_ENDE
+        cmp cx, XMIN        ; cx:X kleiner als XMIN ?
+        jl BERECHNEPOS_ENDE
+
+        mov ax, dx
+        sub ax, YMIN        ; ax [24:479] -> [0:455]
+        mov dl, 24       
+        div dl              ; ax:Y div 24 -> [0:18]
+        xor ah, ah          ; remainder = 0
+        mov dl, 19
+        mul dl              ; ax:Y mul 19 -> [0:342]
+        mov dx, ax
+
+        mov ax, cx
+        mov cl, 24       
+        div cl              ; ax:X div 24 -> [0:18]
+        xor ah, ah          ; remainder = 0
+        add ax, dx          ; -> [0:360]
+
+    BERECHNEPOS_ENDE:
+
+        pop ds
+        pop dx
+        pop cx
+        ret
+BERECHNE_POSITION endp
+
+
+;-----------------------------------------------------------------------------
 ; Behandlung der linken Maustaste
+; (cx -> X | dx -> Y)
 ;-----------------------------------------------------------------------------
 MAUSPROZEDUR_LINKS proc far
         pusha
-; cx -> x
-; dx -> y
+
+        xor ax, ax
+        call BERECHNE_POSITION
+        or ah, FELD_SCHWARZ     ; ax:[Farbe:(X,Y)]
+
+        call GRAFISCH_SETZTEN 
+
         popa
         ret
 MAUSPROZEDUR_LINKS endp
@@ -660,6 +756,12 @@ MAUSPROZEDUR_LINKS endp
 ;-----------------------------------------------------------------------------
 MAUSPROZEDUR_RECHTS proc far
         pusha
+
+        xor ax, ax
+        call BERECHNE_POSITION
+        or ah, FELD_WEISS       ; ax:[Farbe:(X,Y)]
+
+        call GRAFISCH_SETZTEN 
 
         popa
         ret
