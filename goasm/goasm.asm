@@ -72,47 +72,39 @@ ANFANG proc
         int 21h                 ; Text aus *dx ausgeben
 
     ;-------------------------------------------------------------------------
-    ; Die Maus-Prozedurien einstellen:
-    ;-------------------------------------------------------------------------
-    ;   -> fuer die linke Taste:
-    ;-------------------------------------------------------------------------
-        mov ax, 0Ch
-        mov cx, 4
-        push @CODE
-        pop es
-        mov dx, OFFSET MAUSPROZEDUR_LINKS
-        int 33h
-
-    ;-------------------------------------------------------------------------
-    ;   -> fuer die rechte Taste:
-    ;-------------------------------------------------------------------------
-        mov ax, 0Ch
-        mov cx, 16
-        push @CODE
-        pop es
-        mov dx, OFFSET MAUSPROZEDUR_RECHTS
-        int 33h
-
-    ;-------------------------------------------------------------------------
     ; Maus-Cursor aktivieren
     ;-------------------------------------------------------------------------
         mov ax, 1
         int 33h
 
     ;-------------------------------------------------------------------------
+    ; Die Maus-Prozeduren einstellen:
+    ;-------------------------------------------------------------------------
+        mov ax, 0Ch
+        mov cx, 1010b              ; 2 -> links, 8 -> rechts | pressed
+        push cs
+        pop es
+        mov dx, OFFSET MAUSPROZEDUR
+        int 33h
+
+    ;-------------------------------------------------------------------------
     ; Eine Schleife zur Tastenabfrage. Bei ESC wird das Programm beendet.
     ;-------------------------------------------------------------------------
-    CHECK_KEYS:    
+    CHECK_INPUT:    
         xor ax, ax
-        int 16h                 ; Keyboard lesen
-        cmp al, KEY_ESC         ; schauen, ob ESC gedrueckt wurde
-        jne CHECK_KEYS          ; 
+        int 16h
+        cmp al, KEY_ESC
+        jne CHECK_INPUT
+
 
     ;-------------------------------------------------------------------------
     ; Das Programmende einleiten.
     ;-------------------------------------------------------------------------
         mov ax, 2h
         int 33h                 ; Maus-Cursor deaktivieren
+
+        xor ax, ax              
+        int 33h                 ; Maus Reset
 
         mov ax, 3h              
         int 10h                 ; Bildschirm wieder zuruecksetzten
@@ -125,7 +117,7 @@ ANFANG endp
 ;-----------------------------------------------------------------------------
 ; Freigabe der 4 Farbebenen
 ;-----------------------------------------------------------------------------
-FARBEBENEN_FREIGEBEN proc far
+FARBEBENEN_FREIGEBEN proc 
         pusha
         mov dx, 3C4h
         mov al, 2h
@@ -140,7 +132,7 @@ FARBEBENEN_FREIGEBEN endp
 ;-----------------------------------------------------------------------------
 ; Modus 2 fuer Farbebenen einstellen
 ;-----------------------------------------------------------------------------
-FARBEBENEN_MODUS2 proc far
+FARBEBENEN_MODUS2 proc 
         pusha
         mov dx, 3CEh
         mov al, 5h
@@ -163,7 +155,7 @@ FARBEBENEN_MODUS2 endp
 ;   ax: Farbe
 ;   ax: (X,Y)
 ;-----------------------------------------------------------------------------
-GET_STEIN_BRETT proc far
+GET_STEIN_BRETT proc 
         push bx
         push cx
         push dx
@@ -211,7 +203,7 @@ GET_STEIN_BRETT endp
 ;   ax: Farbe
 ;   ax: (X,Y)
 ;-----------------------------------------------------------------------------
-SET_STEIN_BRETT proc far
+SET_STEIN_BRETT proc 
         push ax
         push bx
         push cx
@@ -266,7 +258,7 @@ SET_STEIN_BRETT endp
 ; Rueckgabe:
 ;   Variable RUECKGABE
 ;-----------------------------------------------------------------------------
-CHECK_RUNDUM proc far
+CHECK_RUNDUM proc 
         push ax
         push bx
         push cx
@@ -376,7 +368,7 @@ CHECK_RUNDUM endp
 ; Rueckgabe:
 ;   Variable ANZAHL
 ;-----------------------------------------------------------------------------
-ENTFERNE proc far
+ENTFERNE proc 
         push ax
         push bx
         push cx
@@ -468,7 +460,7 @@ ENTFERNE endp
 ; Rueckgabe:
 ;   Variable RUECKGABE
 ;-----------------------------------------------------------------------------
-PRUEFE proc far
+PRUEFE proc 
         push ax
         push bx
         push cx
@@ -535,7 +527,7 @@ PRUEFE endp
 ; Rueckgabe:
 ;   Variable RUECKGABE
 ;-----------------------------------------------------------------------------
-PRUEFE_RUNDUM proc far
+PRUEFE_RUNDUM proc 
         push ax
         push bx
         push cx
@@ -616,7 +608,7 @@ PRUEFE_RUNDUM endp
 ;   ax : Farbe
 ;   ax : (X,Y)
 ;-----------------------------------------------------------------------------
-SETZTE_STEIN proc far
+SETZTE_STEIN proc 
         push ax
         push cx
         push ds
@@ -649,13 +641,54 @@ SETZTE_STEIN proc far
 SETZTE_STEIN endp
 
 ;-----------------------------------------------------------------------------
+; Brett-Koordinaten -> Bild-Pos.
+;-----------------------------------------------------------------------------
+; Parameter:
+;   ax: (X,Y)
+;-----------------------------------------------------------------------------
+; Rueckgabe:
+;   ax: (X,Y)
+;-----------------------------------------------------------------------------
+BERECHNE_BILDPOS proc
+        push bx
+        push cx
+        push dx
+        push ds
+
+        ;360 = 19x19 - 1
+        ;
+        mov bx, ax
+        mov cl, 19
+        div cl              ; Y Brett Wert
+        mov ch, ah
+;       mov cl, 24
+;       mul cl
+;       mov cx, 60
+;       mul cx              ; Y Bild Wert
+;       mov bx, ax
+
+        mov al, ch
+        mov cl, 24
+        mul cl
+;       add ax, bx
+
+
+        pop ds
+        pop dx
+        pop cx
+        pop bx
+        ret
+BERECHNE_BILDPOS endp
+
+
+;-----------------------------------------------------------------------------
 ; grafisches Setzten
 ;-----------------------------------------------------------------------------
 ; Parameter:
 ;   ax: Farbe
 ;   ax: (X,Y)
 ;-----------------------------------------------------------------------------
-GRAFISCH_SETZTEN proc far
+GRAFISCH_SETZTEN proc 
         pusha
         push es
 
@@ -672,6 +705,25 @@ GRAFISCH_SETZTEN proc far
 
         call FARBEBENEN_FREIGEBEN
         call FARBEBENEN_MODUS2
+
+        mov bx, ax
+
+        mov dx, 3CEh
+        mov al, 8
+        out dx, al
+        inc dx
+        mov al, 0ffh
+        out dx, al
+
+        mov ax, bx
+        mov bx, 05h
+        and ax, FELDNUMMER_MASKE
+        call BERECHNE_BILDPOS
+
+        mov si, ax
+        mov bl, es:[ si]
+        mov es:[si], bx
+
 
     GRAFISCH_ENDE:
 
@@ -692,7 +744,7 @@ GRAFISCH_SETZTEN endp
 ; Rueckgabe:
 ;   ax: Position
 ;-----------------------------------------------------------------------------
-BERECHNE_POSITION proc far
+BERECHNE_POSITION proc 
         push cx
         push dx
         push ds
@@ -735,38 +787,49 @@ BERECHNE_POSITION endp
 
 
 ;-----------------------------------------------------------------------------
-; Behandlung der linken Maustaste
+; Behandlung der Maustasten
 ; (cx -> X | dx -> Y)
 ;-----------------------------------------------------------------------------
-MAUSPROZEDUR_LINKS proc far
-        pusha
-
+MAUSPROZEDUR proc far
+        push ax
+        push bx
+        push ds
+        push es
+        
+        mov ax, 2
+        int 33h                 ; Maus-Cursor aus
+ 
+        push @DATA
+        pop ds
+        push @CODE
+        pop es
+ 
         xor ax, ax
         call BERECHNE_POSITION
+ 
+        cmp bx, 1               ; Linke Taste -> 1. Bit
+        jne NIMM_WEISS
         or ah, FELD_SCHWARZ     ; ax:[Farbe:(X,Y)]
-
-        call GRAFISCH_SETZTEN 
-
-        popa
-        ret
-MAUSPROZEDUR_LINKS endp
-
-;-----------------------------------------------------------------------------
-; Behandlung der rechten Maustaste
-;-----------------------------------------------------------------------------
-MAUSPROZEDUR_RECHTS proc far
-        pusha
-
-        xor ax, ax
-        call BERECHNE_POSITION
+        jmp GRAFISCH
+ 
+    NIMM_WEISS:                 
+        cmp bx, 2               ; Rechte Taste -> 2. Bit
+        jne MAUS_ENDE           ; sollte nicht passieren ...
         or ah, FELD_WEISS       ; ax:[Farbe:(X,Y)]
-
+ 
+    GRAFISCH:
         call GRAFISCH_SETZTEN 
-
-        popa
+ 
+    MAUS_ENDE:
+        mov ax, 1
+        int 33h                 ; Maus-Cursor an
+ 
+        pop es
+        pop ds
+        pop bx
+        pop ax
         ret
-MAUSPROZEDUR_RECHTS endp
-
+MAUSPROZEDUR endp
 
 ;-----------------------------------------------------------------------------
 ; Das Programmende.
