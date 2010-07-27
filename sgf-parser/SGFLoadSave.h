@@ -5,15 +5,24 @@
 #include "States.h"
 #include <string>
 #include <fstream>
+#include <istream>
+#include <ostream>
+#include <sstream>
 #include <boost/shared_ptr.hpp>
 
 class SGFLoadSave {
 public:
     SGFLoadSave();
-    boost::shared_ptr<Node> loadSGF( std::string filename);
+    SHPNode loadSGF( std::string filename);
+    void insert( std::istream& stream);
+    void insert( std::string input);
     void changeState( boost::shared_ptr<STATE::State> newState);
-    boost::shared_ptr<Node> getSGF();
+    SHPNode getSGF();
     const STATE::State* const getCurrentState();
+    void reset();
+    void save( std::string filename);
+    void print( std::ostream& out);
+    std::string getTree();
 
     void addNode ( );
     void setError ( std::string error );
@@ -35,8 +44,8 @@ private:
     SHPPropertie _currentPropertie;
 
     void closeFile();
-    void printNode( SHPNode node);
-    void printTree( SHPNode node);
+    void printNode( SHPNode node, std::ostream& out);
+    void printTree( SHPNode node, std::ostream& out);
 };
 
 #endif
