@@ -15,10 +15,11 @@ int main( int argc, char** argv){
         return 1;
     }
     h.setSGF( sls.getSGF());
+    h.printMap();
     
     while( h.hasNext()){
-        h.printMap();
         h.step();
+        h.printMap();
     }
     return 0;
 }

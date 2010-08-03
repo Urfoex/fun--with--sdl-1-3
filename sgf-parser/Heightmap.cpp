@@ -17,10 +17,38 @@ Heightmap::Heightmap() {
 
 void Heightmap::setSGF(SHPNode head) {
     _head = head;
+    setHandicap();
+    adjustHeight();
+}
+
+void Heightmap::setHandicap() {
+    for ( std::list<SHPPropertie>::iterator it = _head->nodes.back()->properties.begin();
+            it != _head->nodes.back()->properties.end(); ++it) {
+        if ( (*it)->name == "AB") {
+            addHandicap('B', it);
+        } else {
+            if ( (*it)->name == "AW") {
+                addHandicap('W', it);
+            }
+        }
+    }
+}
+
+void Heightmap::addHandicap(char color, std::list< SHPPropertie >::iterator it) {
+    do{
+        addStone( color, (*it)->option);
+        ++it;
+    }while( it != _head->nodes.back()->properties.end() && (*it)->name == "");
+}
+
+void Heightmap::addStone(char color, std::string pos) {
+    unsigned short int x, y;
+    getCoord( pos, x, y);
+    _map.at(x).at(y).color = color;
 }
 
 void Heightmap::getNext() {
-    while ( checkNext() == false) {
+    while ( checkCurrent() == false) {
         if ( _head->properties.size() == 0) {
             if ( _head->nodes.size() > 0) {
                 _head = _head->nodes.back();
@@ -30,10 +58,10 @@ void Heightmap::getNext() {
         } else {
             _head->properties.pop_front();
         }
-    } 
+    }
 }
 
-bool Heightmap::checkNext() {
+bool Heightmap::checkCurrent() {
     if ( _head->properties.size() > 0) {
         std::string color = _head->properties.front()->name;
         if ( (color == "B" || color == "W")) {
@@ -59,7 +87,7 @@ void Heightmap::step() {
         _map.at(x).at(y).color = color.at(0);
         adjustHeight();
     }
-    if( _head->properties.size() > 0)
+    if ( _head->properties.size() > 0)
         _head->properties.pop_front();
 }
 
@@ -101,7 +129,6 @@ void Heightmap::changeHeight(short unsigned int x, short unsigned int y) {
 void Heightmap::printMap() {
     for ( unsigned short int x = 0; x < _map.size(); ++x) {
         for ( unsigned short int y = 0; y < _map.at(x).size(); ++y) {
-
             std::cout << std::setw(6) << std::setfill(' ')<<  _map.at(x).at(y).high;
         }
         std::cout << std::endl;

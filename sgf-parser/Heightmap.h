@@ -40,7 +40,10 @@ private:
     void changeHeight( unsigned short int x, unsigned short int y);
     void getCoord( std::string xy, unsigned short int& x, unsigned short int& y);
     void getNext();
-    bool checkNext();
+    bool checkCurrent();
+    void setHandicap();
+    void addStone( char color ,std::string pos);
+    void addHandicap( char color, std::list<SHPPropertie>::iterator it); 
 };
 
 #endif

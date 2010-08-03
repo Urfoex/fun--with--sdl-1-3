@@ -29,4 +29,4 @@ main3.o: main3.cpp
 Heightmap.o: Heightmap.cpp Heightmap.h
 
 clean:
-	rm -rf *.o *.gch sgf-parser sgf-ls
+	rm -rf *.o *.gch sgf-parser sgf-ls hm
