@@ -32,7 +32,6 @@ private:
     static const unsigned char WHITE;
     Field2D _map;
     SHPNode _head;
-    bool _ended;
     
     void printPos( unsigned short int x, unsigned short int y);
 

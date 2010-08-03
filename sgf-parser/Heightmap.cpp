@@ -11,8 +11,6 @@ Heightmap::Heightmap() {
     for ( short int i = 0; i < NumberOfFields; ++i) {
         _map.at(i).resize(NumberOfFields);
     }
-
-    _ended = false;
 }
 
 void Heightmap::setSGF(SHPNode head) {
@@ -35,10 +33,10 @@ void Heightmap::setHandicap() {
 }
 
 void Heightmap::addHandicap(char color, std::list< SHPPropertie >::iterator it) {
-    do{
+    do {
         addStone( color, (*it)->option);
         ++it;
-    }while( it != _head->nodes.back()->properties.end() && (*it)->name == "");
+    } while ( it != _head->nodes.back()->properties.end() && (*it)->name == "");
 }
 
 void Heightmap::addStone(char color, std::string pos) {
@@ -144,4 +142,8 @@ Field::Field() {
 
 void Field::print() {
     std::clog << "high: " << high << " color: " << color << " width: " << width << std::endl;
+}
+
+Field2D Heightmap::getCurrentMap() {
+    return _map;
 }

@@ -1,7 +1,7 @@
 CPP = g++
 CPPFLAGS = -g -Wall -std=c++0x
 
-all: sgf-parser sgf-ls
+all: sgf-parser sgf-ls hm
 
 sgf-parser: main.o FileReadMachine.o StateMachine.o
 	g++ -Wall -o sgf-parser main.o FileReadMachine.o StateMachine.o
